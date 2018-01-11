@@ -5,9 +5,9 @@ import random
 spool_queue = []#打印请求队列（用数组实现）
 spool_in = None#记录下一个打印请求存放的位置
 spool_out = None#记录下一个被打印文件的位置
-spool_count = len(spool_queue)#记录打印队列中的文件个数
-# a = None
-lock = threading.Lock()
+#spool_count = len(spool_queue)#记录打印队列中的文件个数
+sys_opreat = None
+lock = threading.Lock()#申明进程锁
 
 
 def sendthred(file_name):
@@ -18,10 +18,9 @@ def sendthred(file_name):
     global spool_queue
     lock.acquire()
     try:
-        spool_queue.append([file_name,random.randint(0,50)])
+        spool_queue.append([file_name,random.randint(0,100)])
     finally:
         lock.release()
-    print('')
 
 
 
@@ -32,10 +31,17 @@ def spool_thread():
     '''
     global spool_queue
     lock.acquire()
-    try:
-        print(spool_queue.pop())
-    finally:
-        lock.release()
+
+    print('print list num is ',len(spool_queue))
+    length = spool_queue.pop()
+    print("|--------|-------------------------------------|--------------|")
+    print("| index  | filename                            | filesize(KB) |")
+    print("|--------|-------------------------------------|--------------|")
+    # for x in range(len(spool_queue)):
+    print('|        |          %s                         |      %d      |' %(length[0],length[1]))
+    print('|--------|-------------------------------------|--------------|')
+
+    lock.release()
 
 def print_space(n):
     '''
@@ -54,39 +60,49 @@ def list_spool_queue():
 
 
 
-# def which_os_is():
-#     if os.x`
+def which_os_is():
+    global sys_opreat
+    if os.name == 'nt':
+        sys_opreat = os.system('cls')
+    else:
+        sys_opreat = os.system('clear')
 
 def main():
     '''
     创建线程，初始化信号量，显示主菜单，根据用户选择执行相应功能
     :return: 
     '''
-
     while True:
+        print("|----------------------------|")
+        print("|  1:send a print request    |")
+        print("|  2:list spool queue        |")
+        print("|  3:print a file in spool   |")
+        print("|  4:exit                    |")
+        print("|----------------------------|")
         a = int(input('select a  function '))
-        if a == 1:
-            file_name = input('亲输入文件名')
-            t1 = threading.Thread(target=sendthred(file_name))
-            # t1.daemon(True)
-            t1.start()
-            t1.join()
-        elif a == 2:
-            spool_thread()
-        elif a == 3:
-            t2 = threading.Thread(target=list_spool_queue())
-            t2.start()
-            t2.join()
-        elif a == 4:
-            break
+        try:
+            if a == 1:
+                file_name = input('亲输入文件名')
+                t1 = threading.Thread(target=sendthred(file_name))
+                t1.start()
+                t1.join()
+            elif a == 2:
+                list_spool_queue()
+            elif a == 3:
+                t2 = threading.Thread (target=spool_thread())
+                t2.start ()
+                t2.join ()
+            elif a == 4:
+                break
+        except:
+            print('输入错误')
+            main()
 
 
-
-#os.system('cls')
 
 
 if __name__ == '__main__':
-    mainthred = threading.Thread(target=main())
+    mainthred = threading.Thread(target=main())#创建主线程
     mainthred.start()
     mainthred.join()
 
